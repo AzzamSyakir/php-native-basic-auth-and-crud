@@ -45,15 +45,9 @@ class UserController
     {
         $conn = ConnectDB();
 
-        if (!empty($_POST)){
-        $name = $_POST['name'];
-        $password = $_POST['password'];
-        }
-        else {
-            $_POST = json_decode(file_get_contents('php://input'), true);
-            $name = $_POST['name'];
-            $password = $_POST['password'];
-        }
+        $input = !empty($_POST) ? $_POST : json_decode(file_get_contents('php://input'), true);
+        $name = isset($input['name']) ? $input['name'] : null;
+        $password = isset($input['password']) ? $input['password'] : null;
     
         header('Content-Type: application/json');
         if (empty($name)) {

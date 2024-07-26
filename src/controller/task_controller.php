@@ -44,23 +44,14 @@ class TaskController
     public function post()
     {
         $conn = ConnectDB();
-        if (!empty($_POST)){
-          $title = $_POST['title'];
-          $completed = $_POST['completed'];
-          }
-          else {
-              $_POST = json_decode(file_get_contents('php://input'), true);
-              $title = $_POST['title'];
-              $completed = $_POST['completed'];
-          }
+        $input = !empty($_POST) ? $_POST : json_decode(file_get_contents('php://input'), true);
+        $title = isset($input['title']) ? $input['title'] : null;
 
         header('Content-Type: application/json');
         if (empty($title)) {
             echo json_encode(['status' => 'error', 'message' => 'Name must be filled'], JSON_PRETTY_PRINT);
-        } elseif (!isset($completed)) {
-            echo json_encode(['status' => 'error', 'message' => 'completed must be filled'], JSON_PRETTY_PRINT);
         } else {
-            $createTask = $this->createTask($conn, $title, $completed);
+            $createTask = $this->createTask($conn, $title);
             if ($createTask['status'] === 'success') {
                 $conn->commit();
                 echo json_encode(['status' => $createTask['status'], 'message' => $createTask['message'], 'data' =>$createTask['data']], JSON_PRETTY_PRINT);
@@ -70,14 +61,14 @@ class TaskController
             }
         }
     }
-    private function createTask(mysqli $conn, string $title, int $completed): array
+    private function createTask(mysqli $conn, string $title): array
     {
         try {
             $dateTime = new DateTime();
             $formattedDateTime = $dateTime->format('Y-m-d H:i:s');
             $id = substr(sha1(time()), 0, 10);
 
-            $query = "INSERT INTO tasks (id, title, completed, created_at, updated_at) VALUES ('$id', '$title', '$completed', '$formattedDateTime', '$formattedDateTime')";
+            $query = "INSERT INTO tasks (id, title, completed, created_at, updated_at) VALUES ('$id', '$title', 0, '$formattedDateTime', '$formattedDateTime')";
             $result = $conn->query($query);
 
             if ($result) {
@@ -85,7 +76,56 @@ class TaskController
                 $newTask = [
                     'id' => $id,
                     'title' => $title,
-                    'completed' => $completed,
+                    'completed' => 0,
+                    'created_at' => $formattedDateTime,
+                    'updated_at' => $formattedDateTime
+                ];
+                return ['status' => 'success', 'message'=> 'success CreateTask', 'data' => $newTask];
+            } else {
+                throw new Exception($conn->error);
+            }
+        } catch (Exception $e) {
+            $conn->rollback();
+            return (['status' => 'error', 'message' => "Failed: " . $e->getMessage()]);
+        }
+    }
+    public function Patch()
+    {
+        $conn = ConnectDB();
+        $input = !empty($_POST) ? $_POST : json_decode(file_get_contents('php://input'), true);
+        $title = isset($input['title']) ? $input['title'] : null;
+        $completed = isset($input['completed']) ? $input['completed'] : null;
+
+        header('Content-Type: application/json');
+        if (empty($title)) {
+            echo json_encode(['status' => 'error', 'message' => 'Name must be filled'], JSON_PRETTY_PRINT);
+        } else {
+            $createTask = $this->UpdateStatus($conn, $title, $completed);
+            if ($createTask['status'] === 'success') {
+                $conn->commit();
+                echo json_encode(['status' => $createTask['status'], 'message' => $createTask['message'], 'data' =>$createTask['data']], JSON_PRETTY_PRINT);
+            } else {
+                $conn->rollback();
+                echo json_encode(['status' => $createTask['status'], 'message' => $createTask['message']], JSON_PRETTY_PRINT);
+            }
+        }
+    }
+    private function UpdateStatus(mysqli $conn, string $title, int $completed): array
+    {
+        try {
+            $dateTime = new DateTime();
+            $formattedDateTime = $dateTime->format('Y-m-d H:i:s');
+            $id = substr(sha1(time()), 0, 10);
+
+            $query = "INSERT INTO tasks (id, title, completed, created_at, updated_at) VALUES ('$id', '$title', 0, '$formattedDateTime', '$formattedDateTime')";
+            $result = $conn->query($query);
+
+            if ($result) {
+                $conn->commit();
+                $newTask = [
+                    'id' => $id,
+                    'title' => $title,
+                    'completed' => 0,
                     'created_at' => $formattedDateTime,
                     'updated_at' => $formattedDateTime
                 ];
