@@ -41,7 +41,7 @@ class UserController
         return $user;
     }
 
-    public function post()
+    public function Post()
     {
         $conn = ConnectDB();
 

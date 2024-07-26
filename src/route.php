@@ -16,18 +16,27 @@ function Route() {
     if ($method == 'GET') {
     $controller->get();
     } elseif ($method == 'POST') {
-    $controller->post();
+    $controller->Post();
     }
     break;
   case '/api/tasks':
         require 'controller/task_controller.php';
         $controller = new TaskController();
         if ($method == 'GET') {
-        $controller->get();
+        $controller->FetchTask();
         } elseif ($method == 'POST') {
-        $controller->post();
+        $controller->CreateTask();
         }
         break;
+  case '/api/tasks/:id':
+          require 'controller/task_controller.php';
+          $controller = new TaskController();
+          if ($method == 'GET') {
+          $controller->Get();
+          } elseif ($method == 'POST') {
+          $controller->CreateTask();
+          }
+          break;
 
   default:
           header("HTTP/1.0 404 Not Found");
