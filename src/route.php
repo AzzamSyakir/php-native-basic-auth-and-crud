@@ -19,9 +19,20 @@ function Route() {
     $controller->post();
     }
     break;
-    default:
-              header("HTTP/1.0 404 Not Found");
-              echo "404 Not Found";
-              break;
-      } 
+  case '/api/tasks':
+        require 'controller/task_controller.php';
+        $controller = new TaskController();
+        if ($method == 'GET') {
+        $controller->get();
+        } elseif ($method == 'POST') {
+        $controller->post();
+        }
+        break;
+
+  default:
+          header("HTTP/1.0 404 Not Found");
+          echo "404 Not Found";
+          break;
+  
+}
 }
