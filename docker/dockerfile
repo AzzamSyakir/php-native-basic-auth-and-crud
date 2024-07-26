@@ -1,0 +1,17 @@
+FROM php:7.4-apache
+
+FROM php:7.4-apache
+
+# Install mysqli extension
+RUN docker-php-ext-install mysqli
+
+
+# Update package list dan install sudo
+RUN apt-get update && \
+    apt-get install -y sudo && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN a2enmod rewrite
+
+# Start Apache server
+CMD ["apache2-foreground"]

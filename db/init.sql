@@ -1,0 +1,17 @@
+CREATE TABLE IF NOT EXISTS users
+(
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL, 
+    updated_at TIMESTAMP NOT NULL 
+);
+
+CREATE TABLE IF NOT EXISTS tasks
+(
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL UNIQUE,
+    completed BOOLEAN NOT NULL,
+    created_at TIMESTAMP NOT NULL, 
+    updated_at TIMESTAMP NOT NULL 
+);
