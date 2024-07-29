@@ -38,7 +38,7 @@ function Route() {
         if ($method == 'GET') {
             $controller->GetOneById($id);
         } elseif ($method == 'PATCH') {
-            $controller->Patch($id);
+            $controller->PatchOneById($id);
         }
         break;
 
