@@ -10,14 +10,10 @@ function Route() {
   $method = $_SERVER['REQUEST_METHOD'];
 
   switch (true) {
-      case $uri === '/api/users':
+      case $uri === '/register':
           require 'controller/user_controller.php';
           $controller = new UserController();
-          if ($method == 'GET') {
-              $controller->get();
-          } elseif ($method == 'POST') {
-              $controller->Post();
-          }
+          $controller->Register();
           break;
 
       case $uri === '/api/tasks':
@@ -33,7 +29,7 @@ function Route() {
       case preg_match('/^\/api\/tasks\/([a-zA-Z0-9]+)$/', $uri, $matches);
         require 'controller/task_controller.php';
         $controller = new TaskController();
-        $id = $matches[1]; // Menangkap ID dari URI
+        $id = $matches[1];
         
         if ($method == 'GET') {
             $controller->GetOneById($id);
