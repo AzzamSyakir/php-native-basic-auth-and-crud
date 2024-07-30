@@ -1,6 +1,7 @@
 <?php
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
 require_once __DIR__ . '/../db.php';
 require 'vendor/autoload.php';
 class UserController
@@ -74,6 +75,7 @@ class UserController
                 $senderEmailPassword = $_ENV['SENDER_EMAIL_PASSWORD'];
                 $activation_link = $appHost . "/confirm/" . $token ;
                 // Server settings
+                $mail->SMTPDebug = SMTP::DEBUG_SERVER;       
                 $mail->isSMTP(); 
                 $mail->Host = "smtp.gmail.com"; 
                 $mail->SMTPAuth   = true; 
