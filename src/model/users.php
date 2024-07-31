@@ -2,17 +2,19 @@
 class User
 {
     public $id;
-    public $name;
+    public $username;
+    public $email;
     public $password;
-    public $createdAt;
-    public $updatedAt;
+    public $token;
+    public $confirmed;
 
-    public function __construct($id, $name, $password, $createdAt, $updatedAt)
+    public function __construct($id, $email, $username, $password, $token, $confirmed)
     {
         $this->id = $id;
-        $this->name = $name;
+        $this->username = $username;
+        $this->email = $email;
         $this->password = $password;
-        $this->createdAt = $createdAt;
-        $this->updatedAt = $updatedAt;
+        $this->token = $token;
+        $this->confirmed = $confirmed;
     }
 }
