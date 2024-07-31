@@ -6,8 +6,10 @@ function Route() {
   header("Access-Control-Max-Age: 3600");
   header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
   
-  $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-  $method = $_SERVER['REQUEST_METHOD'];
+  $uri = $_SERVER['REQUEST_URI'];
+  $parsed_url = parse_url($uri);
+  $path = $parsed_url['path'];
+  $query = isset($parsed_url['query']) ? $parsed_url['query'] : '';
 
   switch (true) {
       case $uri === '/register':
@@ -15,6 +17,7 @@ function Route() {
           $controller = new UserController();
           $controller->Register();
           break;
+          
 
       case $uri === '/api/tasks':
           require 'controller/task_controller.php';
@@ -25,19 +28,26 @@ function Route() {
               $controller->CreateTask();
           }
           break;
-
-      case preg_match('/^\/api\/tasks\/([a-zA-Z0-9]+)$/', $uri, $matches);
-        require 'controller/task_controller.php';
-        $controller = new TaskController();
-        $id = $matches[1];
+          case preg_match('/^\/confirm\/([a-zA-Z0-9]+)$/', $path, $matches):
+            require 'controller/user_controller.php';
+            $token = $matches[1];
+            require 'controller/task_controller.php';
+            $controller = new UserController();
+            $controller->ConfirmEmail($token);
+            break;
         
-        if ($method == 'GET') {
-            $controller->GetOneById($id);
-        } elseif ($method == 'PATCH') {
-            $controller->PatchOneById($id);
-        }
-        break;
-
+        case preg_match('/^\/confirm\/?$/', $path):
+            require 'controller/user_controller.php';
+            parse_str($query, $query_params);
+            if (isset($query_params['token'])) {
+                $token = $query_params['token'];
+                require 'controller/task_controller.php';
+                $controller = new UserController();
+                $controller->ConfirmEmail($token);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Token is missing'], JSON_PRETTY_PRINT);
+            }
+            break;
       default:
           header("HTTP/1.0 404 Not Found");
           echo json_encode(["status" => "error", "message" => "Endpoint not found"]);
