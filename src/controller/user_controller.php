@@ -20,9 +20,14 @@ class UserController
 
     
         header('Content-Type: application/json');
-    
+
+        if (empty($email)) {
+            echo json_encode(['status' => 'error', 'message' => 'email must be filled'], JSON_PRETTY_PRINT);
+            return;
+        }
+
         if (empty($username)) {
-            echo json_encode(['status' => 'error', 'message' => 'Name must be filled'], JSON_PRETTY_PRINT);
+            echo json_encode(['status' => 'error', 'message' => 'username must be filled'], JSON_PRETTY_PRINT);
             return;
         }
     
@@ -160,6 +165,116 @@ class UserController
         } else {
             echo json_encode(['status' => 'error', 'message' => 'No user found.'], JSON_PRETTY_PRINT);
         }
+    }
+    public function Login()
+    {
+        $conn = ConnectDB();
+        $conn->begin_transaction();
+    
+        $input = !empty($_POST) ? $_POST : json_decode(file_get_contents('php://input'), true);
+        $email = $input['email'] ?? null;
+        $password = $input['password'] ?? null;
+    
+        header('Content-Type: application/json');
+    
+        if (empty($email)) {
+            echo json_encode(['status' => 'error', 'message' => 'Email must be filled'], JSON_PRETTY_PRINT);
+            return;
+        }
+    
+        if (empty($password)) {
+            echo json_encode(['status' => 'error', 'message' => 'Password must be filled'], JSON_PRETTY_PRINT);
+            return;
+        }
+    
+        try {
+            $query = "SELECT id, password, confirmed FROM users WHERE email=?";
+            $stmt = $conn->prepare($query);
+            if ($stmt === false) {
+                throw new Exception("Failed to prepare statement: " . $conn->error);
+            }
+    
+            $stmt->bind_param("s", $email);
+            $stmt->execute();
+            $result = $stmt->get_result();
+    
+            if ($result && $result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                $userId = $row['id'];
+                $password_hash = $row['password'];
+                $confirmed = $row['confirmed'];
+            } else {
+                throw new Exception("No user found with the given email.");
+            }
+    
+            $conn->commit();
+        } catch (Exception $e) {
+            $conn->rollback();
+            echo json_encode(['status' => 'error', 'message' => "Failed: " . $e->getMessage()], JSON_PRETTY_PRINT);
+            return;
+        }
+    
+        if (!password_verify($password, $password_hash)) {
+            echo json_encode(['status' => 'error', 'message' => "Failed: Password does not match"], JSON_PRETTY_PRINT);
+            return;
+        }
+    
+        if ($confirmed == 0) {
+            echo json_encode(['status' => 'error', 'message' => "Failed: Email not verified. You must verify your email first."], JSON_PRETTY_PRINT);
+            return;
+        }
+    
+        try {
+            $query = "SELECT * FROM sessions WHERE user_id=?";
+            $stmt = $conn->prepare($query);
+            if ($stmt === false) {
+                throw new Exception("Failed to prepare statement: " . $conn->error);
+            }
+    
+            $stmt->bind_param("s", $userId);
+            $stmt->execute();
+            $result = $stmt->get_result();
+    
+            $dateTime = new DateTime();
+            $accessTokenExpiry = (clone $dateTime)->modify('+7 days');
+            $refreshTokenExpiry = (clone $dateTime)->modify('+15 minutes');
+    
+            $accessToken = bin2hex(random_bytes(16));
+            $refreshToken = bin2hex(random_bytes(16));
+    
+            $accessTokenExpiredAt = $accessTokenExpiry->format('Y-m-d H:i:s');
+            $refreshTokenExpiredAt = $refreshTokenExpiry->format('Y-m-d H:i:s');
+    
+            if ($result && $result->num_rows > 0) {
+                $query = "UPDATE sessions SET access_token=?, refresh_token=?, access_token_expired_at=?, refresh_token_expired_at=? WHERE user_id=?";
+                $stmt = $conn->prepare($query);
+                if ($stmt === false) {
+                    throw new Exception("Failed to prepare update statement: " . $conn->error);
+                }
+    
+                $stmt->bind_param("sssss", $accessToken, $refreshToken, $accessTokenExpiredAt, $refreshTokenExpiredAt, $userId);
+            } else {
+                $id = substr(sha1(time()), 0, 10);
+                $query = "INSERT INTO sessions (id, user_id, access_token, refresh_token, access_token_expired_at, refresh_token_expired_at) VALUES (?, ?, ?, ?, ?, ?)";
+                $stmt = $conn->prepare($query);
+                if ($stmt === false) {
+                    throw new Exception("Failed to prepare insert statement: " . $conn->error);
+                }
+    
+                $stmt->bind_param("ssssss", $id, $userId, $accessToken, $refreshToken, $accessTokenExpiredAt, $refreshTokenExpiredAt);
+            }
+    
+            $stmt->execute();
+            $conn->commit();
+            setcookie("access_token_cookie", $accessToken, $accessTokenExpiry->getTimestamp());
+            echo json_encode(['status' => 'success', 'message' => 'Login Success'], JSON_PRETTY_PRINT);
+        } catch (Exception $e) {
+            $conn->rollback();
+            echo json_encode(['status' => 'error', 'message' => "Failed: " . $e->getMessage()], JSON_PRETTY_PRINT);
+        }
+    }
+    public function hello() {
+        echo("hello after login");
     }
     
 }
