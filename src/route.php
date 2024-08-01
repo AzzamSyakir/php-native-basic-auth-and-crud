@@ -23,7 +23,7 @@ function Route() {
         require 'middleware.php';
         require 'controller/user_controller.php';
         $middleware = new Middleware();
-        if ($middleware->ValidateToken($conn)) {
+        if ($middleware->ValidateAccToken($conn)) {
             $controller = new UserController();
             $controller->hello();
         }
@@ -32,9 +32,18 @@ function Route() {
         require 'middleware.php';
         require 'controller/user_controller.php';
         $middleware = new Middleware();
-        if ($middleware->ValidateToken($conn)) {
+        if ($middleware->ValidateAccToken($conn)) {
             $controller = new UserController();
             $controller->Logout($conn);
+        }
+        break;
+    case $uri === '/token':
+        require 'middleware.php';
+        require 'controller/user_controller.php';
+        $middleware = new Middleware();
+        if ($middleware->ValidateRefToken($conn)) {
+            $controller = new UserController();
+            $controller->GenerateAccToken($conn);
         }
         break;
         
