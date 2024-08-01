@@ -1,4 +1,5 @@
 <?php
+require 'db.php';
 function Route() {
   header("Access-Control-Allow-Origin: *");
   header("Content-Type: application/json; charset=UTF-8");
@@ -10,18 +11,22 @@ function Route() {
   $parsed_url = parse_url($uri);
   $path = $parsed_url['path'];
   $query = isset($parsed_url['query']) ? $parsed_url['query'] : '';
-
+  $conn = ConnectDB();
   switch (true) {
     case $uri === '/register':
         require 'controller/user_controller.php';
         $controller = new UserController();
-        $controller->Register();
+        $controller->Register($conn);
         break;
 
     case $uri === '/hello':
+        require 'middleware.php';
         require 'controller/user_controller.php';
-        $controller = new UserController();
-        $controller->hello();
+        $middleware = new Middleware();
+        if ($middleware->ValidateToken($conn)) {
+            $controller = new UserController();
+            $controller->hello();
+        }
         break;
         
     case preg_match('/^\/confirm\/?$/', $path):
@@ -31,7 +36,7 @@ function Route() {
             $token = $query_params['token'];
             require 'controller/task_controller.php';
             $controller = new UserController();
-            $controller->ConfirmEmail($token);
+            $controller->ConfirmEmail($conn, $token);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Token is missing'], JSON_PRETTY_PRINT);
         }
@@ -40,16 +45,16 @@ function Route() {
     case $uri === '/login':
         require 'controller/user_controller.php';
         $controller = new UserController();
-        $controller->Login();
+        $controller->Login($conn);
         break;
 
     case $uri === '/api/tasks':
         require 'controller/task_controller.php';
         $controller = new TaskController();
         if ($method == 'GET') {
-            $controller->FetchTask();
+            $controller->FetchTask($conn);
         } elseif ($method == 'POST') {
-            $controller->CreateTask();
+            $controller->CreateTask($conn);
         }
         break;
         case preg_match('/^\/confirm\/([a-zA-Z0-9]+)$/', $path, $matches):
@@ -57,7 +62,7 @@ function Route() {
         $token = $matches[1];
         require 'controller/task_controller.php';
         $controller = new UserController();
-        $controller->ConfirmEmail($token);
+        $controller->ConfirmEmail($conn, $token);
         break;
     
       default:

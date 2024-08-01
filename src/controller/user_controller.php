@@ -6,9 +6,8 @@ require 'vendor/autoload.php';
 require_once __DIR__ . '/../model/users.php';
 class UserController
 {
-    public function Register()
+    public function Register(mysqli $conn)
     {
-        $conn = ConnectDB();
         $conn->begin_transaction();
     
         $input = !empty($_POST) ? $_POST : json_decode(file_get_contents('php://input'), true);
@@ -102,9 +101,8 @@ class UserController
             echo json_encode(['status' => 'error', 'message' => "Failed: " . $e->getMessage()], JSON_PRETTY_PRINT);
         }
     }
-    public function ConfirmEmail(string $token)
+    public function ConfirmEmail(mysqli $conn, string $token)
     {
-        $conn = ConnectDB();
         $conn->begin_transaction();
         
         if ($conn->connect_error) {
@@ -166,9 +164,8 @@ class UserController
             echo json_encode(['status' => 'error', 'message' => 'No user found.'], JSON_PRETTY_PRINT);
         }
     }
-    public function Login()
+    public function Login(mysqli $conn)
     {
-        $conn = ConnectDB();
         $conn->begin_transaction();
     
         $input = !empty($_POST) ? $_POST : json_decode(file_get_contents('php://input'), true);
@@ -195,7 +192,10 @@ class UserController
             }
     
             $stmt->bind_param("s", $email);
-            $stmt->execute();
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to execute statement: " . $conn->error);
+            }
+
             $result = $stmt->get_result();
     
             if ($result && $result->num_rows > 0) {
@@ -210,17 +210,17 @@ class UserController
             $conn->commit();
         } catch (Exception $e) {
             $conn->rollback();
-            echo json_encode(['status' => 'error', 'message' => "Failed: " . $e->getMessage()], JSON_PRETTY_PRINT);
+            echo json_encode(['status' => 'error', 'message' => "Login Failed: " . $e->getMessage()], JSON_PRETTY_PRINT);
             return;
         }
     
         if (!password_verify($password, $password_hash)) {
-            echo json_encode(['status' => 'error', 'message' => "Failed: Password does not match"], JSON_PRETTY_PRINT);
+            echo json_encode(['status' => 'error', 'message' => "Login Failed: Password does not match"], JSON_PRETTY_PRINT);
             return;
         }
     
         if ($confirmed == 0) {
-            echo json_encode(['status' => 'error', 'message' => "Failed: Email not verified. You must verify your email first."], JSON_PRETTY_PRINT);
+            echo json_encode(['status' => 'error', 'message' => "Login Failed: Email not verified. You must verify your email first."], JSON_PRETTY_PRINT);
             return;
         }
     
@@ -232,9 +232,10 @@ class UserController
             }
     
             $stmt->bind_param("s", $userId);
-            $stmt->execute();
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to execute statement: " . $conn->error);
+            }
             $result = $stmt->get_result();
-    
             $dateTime = new DateTime();
             $accessTokenExpiry = (clone $dateTime)->modify('+7 days');
             $refreshTokenExpiry = (clone $dateTime)->modify('+15 minutes');
@@ -249,19 +250,23 @@ class UserController
                 $query = "UPDATE sessions SET access_token=?, refresh_token=?, access_token_expired_at=?, refresh_token_expired_at=? WHERE user_id=?";
                 $stmt = $conn->prepare($query);
                 if ($stmt === false) {
-                    throw new Exception("Failed to prepare update statement: " . $conn->error);
+                    throw new Exception("Failed to prepare statement: " . $conn->error);
                 }
-    
                 $stmt->bind_param("sssss", $accessToken, $refreshToken, $accessTokenExpiredAt, $refreshTokenExpiredAt, $userId);
+                if (!$stmt->execute()) {
+                    throw new Exception("Failed to execute statement: " . $conn->error);
+                }
             } else {
                 $id = substr(sha1(time()), 0, 10);
                 $query = "INSERT INTO sessions (id, user_id, access_token, refresh_token, access_token_expired_at, refresh_token_expired_at) VALUES (?, ?, ?, ?, ?, ?)";
                 $stmt = $conn->prepare($query);
                 if ($stmt === false) {
-                    throw new Exception("Failed to prepare insert statement: " . $conn->error);
+                    throw new Exception("Failed to prepare statement: " . $conn->error);
                 }
-    
                 $stmt->bind_param("ssssss", $id, $userId, $accessToken, $refreshToken, $accessTokenExpiredAt, $refreshTokenExpiredAt);
+                if (!$stmt->execute()) {
+                    throw new Exception("Failed to execute statement: " . $conn->error);
+                }
             }
     
             $stmt->execute();
@@ -270,7 +275,7 @@ class UserController
             echo json_encode(['status' => 'success', 'message' => 'Login Success'], JSON_PRETTY_PRINT);
         } catch (Exception $e) {
             $conn->rollback();
-            echo json_encode(['status' => 'error', 'message' => "Failed: " . $e->getMessage()], JSON_PRETTY_PRINT);
+            echo json_encode(['status' => 'error', 'message' => "Login Failed: " . $e->getMessage()], JSON_PRETTY_PRINT);
         }
     }
     public function hello() {

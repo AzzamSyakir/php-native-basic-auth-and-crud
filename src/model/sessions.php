@@ -2,16 +2,16 @@
 class Session
 {
     public $id;
-    public $user_id;
+    public $userId;
     public $accessToken;
     public $refreshToken;
     public $accessTokenExpiredAt;
     public $refreshTokenExpiredAt;
 
-    public function __construct($id, $user_id,  $refreshToken, $accessToken, $accessTokenExpiredAt, $refreshTokenExpiredAt)
+    public function __construct($id, $userId,  $refreshToken, $accessToken, $accessTokenExpiredAt, $refreshTokenExpiredAt)
     {
         $this->id = $id;
-        $this->user_id = $user_id;
+        $this->userId = $userId;
         $this->accessToken = $accessToken;
         $this->refreshToken = $refreshToken;
         $this->accessTokenExpiredAt = $accessTokenExpiredAt;
