@@ -278,6 +278,38 @@ class UserController
             echo json_encode(['status' => 'error', 'message' => "Login Failed: " . $e->getMessage()], JSON_PRETTY_PRINT);
         }
     }
+    public function Logout(mysqli $conn) 
+    {
+        $middleware = new Middleware;
+        $accessToken = $middleware->GetTokenfromHeader();
+        if (empty($accessToken)) {
+            echo json_encode(['status' => 'error', 'message' => 'Logout failed : Authorization header not found or empty'], JSON_PRETTY_PRINT);
+            return;
+        }
+    
+        try {
+            if ($conn->begin_transaction() === false) {
+                throw new Exception("Failed to start transaction: " . $conn->error);
+            }
+    
+            $query = "DELETE FROM sessions WHERE access_token=?";
+            $stmt = $conn->prepare($query);
+            if ($stmt === false) {
+                throw new Exception("Failed to prepare statement: " . $conn->error);
+            }
+    
+            $stmt->bind_param('s', $accessToken);
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to execute statement: " . $conn->error);
+            }
+            $conn->commit();
+            echo json_encode(['status' => 'success', 'message' => "Logout Success"], JSON_PRETTY_PRINT);
+        } catch (Exception $e) {
+            $conn->rollback();
+            echo json_encode(['status' => 'error', 'message' => "Logout Failed: " . $e->getMessage()], JSON_PRETTY_PRINT);
+            return;
+        }
+    }
     public function hello() {
         echo("hello after login");
     }

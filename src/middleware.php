@@ -2,26 +2,9 @@
 require 'model/sessions.php';
 
 class Middleware {
-  public function ValidateToken(mysqli $conn)
+    public function ValidateToken(mysqli $conn)
 {
-    $headers = null;
-    if (isset($_SERVER['Authorization'])) {
-        $headers = trim($_SERVER["Authorization"]);
-    } else if (function_exists('apache_request_headers')) {
-        $requestHeaders = apache_request_headers();
-        $requestHeaders = array_combine(array_map('ucwords', array_keys($requestHeaders)), array_values($requestHeaders));
-        if (isset($requestHeaders['Authorization'])) {
-            $headers = trim($requestHeaders['Authorization']);
-        }
-    }
-
-    $accessToken = null;
-    if (!empty($headers)) {
-        if (preg_match('/Bearer\s(\S+)/', $headers, $matches)) {
-            $accessToken = $matches[1];
-        }
-    }
-
+    $accessToken = $this->GetTokenfromHeader();
     if (empty($accessToken)) {
         echo json_encode(['status' => 'error', 'message' => 'Authorize failed : Authorization header not found or empty'], JSON_PRETTY_PRINT);
         return;
@@ -70,6 +53,26 @@ class Middleware {
         echo json_encode(['status' => 'error', 'message' => "Authorize Failed: " . $e->getMessage()], JSON_PRETTY_PRINT);
         return;
     }
+}
+public function GetTokenfromHeader() {
+    $headers = null;
+    if (isset($_SERVER['Authorization'])) {
+        $headers = trim($_SERVER["Authorization"]);
+    } else if (function_exists('apache_request_headers')) {
+        $requestHeaders = apache_request_headers();
+        $requestHeaders = array_combine(array_map('ucwords', array_keys($requestHeaders)), array_values($requestHeaders));
+        if (isset($requestHeaders['Authorization'])) {
+            $headers = trim($requestHeaders['Authorization']);
+        }
+    }
+
+    $token = null;
+    if (!empty($headers)) {
+        if (preg_match('/Bearer\s(\S+)/', $headers, $matches)) {
+            $token = $matches[1];
+        }
+    }
+    return $token;
 }
 
 }

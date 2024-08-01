@@ -28,6 +28,15 @@ function Route() {
             $controller->hello();
         }
         break;
+    case $uri === '/logout':
+        require 'middleware.php';
+        require 'controller/user_controller.php';
+        $middleware = new Middleware();
+        if ($middleware->ValidateToken($conn)) {
+            $controller = new UserController();
+            $controller->Logout($conn);
+        }
+        break;
         
     case preg_match('/^\/confirm\/?$/', $path):
         require 'controller/user_controller.php';
