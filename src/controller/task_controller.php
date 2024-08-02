@@ -4,9 +4,7 @@ require_once __DIR__ . '/../model/tasks.php';
 
 class TaskController
 {
-    public function FetchTask()
-    {
-        $conn = ConnectDB();
+    public function FetchTask(mysqli $conn)    {
         $task = [];
         try {
             $query = "SELECT * FROM tasks";
@@ -35,9 +33,8 @@ class TaskController
             echo json_encode(['status' => 'error', 'message' => 'No task found.'], JSON_PRETTY_PRINT);
         }
     }
-    public function CreateTask()
+    public function CreateTask(mysqli $conn)
     {
-        $conn = ConnectDB();
         $input = !empty($_POST) ? $_POST : json_decode(file_get_contents('php://input'), true);
         $title = isset($input['title']) ? $input['title'] : null;
 
@@ -73,9 +70,8 @@ class TaskController
             }
         }
     }
-    public function GetOneById(string $id)
+    public function GetOneById(mysqli $conn, string $id)
     {
-        $conn = ConnectDB();
         $conn->begin_transaction();
         $task = null;
         try {
@@ -110,9 +106,8 @@ class TaskController
             echo json_encode(['status' => 'error', 'message' => 'No task found.'], JSON_PRETTY_PRINT);
         }   
     }
-    public function PatchOneById(string $id)
+    public function PatchOneById(mysqli $conn, string $id)
     {
-        $conn = ConnectDB();
         
         if ($conn->connect_error) {
             echo json_encode(['status' => 'error', 'message' => "Connection failed: " . $conn->connect_error], JSON_PRETTY_PRINT);
