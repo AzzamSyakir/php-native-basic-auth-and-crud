@@ -2,8 +2,7 @@
 require 'model/sessions.php';
 
 class Middleware {
-    public function ValidateAccToken(mysqli $conn)
-{
+public function ValidateAccToken(mysqli $conn) {
     $accessToken = $this->GetTokenfromHeader();
     if (empty($accessToken)) {
         echo json_encode(['status' => 'error', 'message' => 'Authorize failed : Authorization header not found or empty'], JSON_PRETTY_PRINT);
@@ -54,8 +53,7 @@ class Middleware {
         return;
     }
 }
-    public function ValidateRefToken(mysqli $conn)
-{
+public function ValidateRefToken(mysqli $conn) {
     $refreshToken = $this->GetTokenfromHeader();
     if (empty($refreshToken)) {
         echo json_encode(['status' => 'error', 'message' => 'Authorize failed : Authorization header not found or empty'], JSON_PRETTY_PRINT);
@@ -126,5 +124,4 @@ public function GetTokenfromHeader() {
     }
     return $token;
 }
-
 }
