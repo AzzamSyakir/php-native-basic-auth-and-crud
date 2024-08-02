@@ -60,11 +60,51 @@ function Route() {
         }
         break;
 
+    case preg_match('/^\/confirm\/([a-zA-Z0-9]+)$/', $path, $matches):
+        require 'controller/user_controller.php';
+        $token = $matches[1];
+        require 'controller/task_controller.php';
+        $controller = new UserController();
+        $controller->ConfirmEmail($conn, $token);
+        break;
+
+
     case $uri === '/login':
         require 'controller/user_controller.php';
         $controller = new UserController();
         $controller->Login($conn);
         break;
+
+
+
+    case $uri === '/forgot-password':
+        require 'controller/user_controller.php';
+        $controller = new UserController();
+        $controller->ForgotPassword($conn);
+        break;
+
+    case preg_match('/^\/reset-password\/?$/', $path):
+        require 'controller/user_controller.php';
+        parse_str($query, $query_params);
+        if (isset($query_params['id'])) {
+            $id = $query_params['id'];
+            require 'controller/task_controller.php';
+            $controller = new UserController();
+            $controller->ResetPassword($conn, $id);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Token is missing'], JSON_PRETTY_PRINT);
+        }
+        break;
+
+    case preg_match('/^\/reset-password\/([a-zA-Z0-9]+)$/', $path, $matches):
+        require 'controller/user_controller.php';
+        $id = $matches[1];
+        require 'controller/task_controller.php';
+        $controller = new UserController();
+        $controller->ResetPassword($conn, $id);
+        break;
+    
+
 
     case $uri === '/api/tasks':
         require 'controller/task_controller.php';
@@ -75,13 +115,7 @@ function Route() {
             $controller->CreateTask($conn);
         }
         break;
-        case preg_match('/^\/confirm\/([a-zA-Z0-9]+)$/', $path, $matches):
-        require 'controller/user_controller.php';
-        $token = $matches[1];
-        require 'controller/task_controller.php';
-        $controller = new UserController();
-        $controller->ConfirmEmail($conn, $token);
-        break;
+     
     
       default:
           header("HTTP/1.0 404 Not Found");

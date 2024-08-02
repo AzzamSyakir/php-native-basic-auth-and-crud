@@ -40,7 +40,7 @@ class UserController
             $query = "INSERT INTO users (id, username, password, email, token, confirmed) VALUES (?, ?, ?, ?, ?, false)";
             $stmt = $conn->prepare($query);
             if ($stmt === false) {
-                $error_message = "Failed to prepare update statement: " . mysqli_error($conn);
+                $error_message = "Failed to prepare statement: " . mysqli_error($conn);
                 error_log($error_message);
                 throw new Exception($error_message);
             }
@@ -53,8 +53,7 @@ class UserController
     
             // Send email
             $mail = new PHPMailer(true);
-            $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . "/../");
-            $dotenv->load();
+          
             $appHost = $_ENV['APP_HOST'];
             $appPort = $_ENV['APP_PORT'];
             $senderEmailAddress = $_ENV['SENDER_EMAIL_ADDRESS'];
@@ -279,7 +278,6 @@ class UserController
             echo json_encode(['status' => 'error', 'message' => "Login Failed: " . $e->getMessage()], JSON_PRETTY_PRINT);
         }
     }
-    
     public function Logout(mysqli $conn) 
     {
         $middleware = new Middleware;
@@ -390,6 +388,173 @@ class UserController
                 'status' => 'error', 
                 'message' => "GenerateAccToken Failed: " . $e->getMessage()
             ], JSON_PRETTY_PRINT);
+        }
+    }
+    public function ForgotPassword(mysqli $conn)
+    {
+        header('Content-Type: application/json');
+        
+        $input = !empty($_POST) ? $_POST : json_decode(file_get_contents('php://input'), true);
+        $email = isset($input['email']) ? $input['email'] : null;
+        
+        if (empty($email)) {
+            echo json_encode(['status' => 'error', 'message' => 'Email must be filled'], JSON_PRETTY_PRINT);
+            return;
+        }
+        
+        $conn->begin_transaction();
+        
+        try {
+            $id = substr(sha1(time()), 0, 10);
+            $dateTime = new DateTime();
+            $timeNow = $dateTime->format('Y-m-d H:i:s');    
+            // Query to find user by email
+            $query = "SELECT id, email FROM users WHERE email=?";
+            $stmt = $conn->prepare($query);
+            if ($stmt === false) {
+                throw new Exception("Failed to prepare statement: " . $conn->error);
+            }
+    
+            $stmt->bind_param("s", $email);
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to execute statement: " . $stmt->error);
+            }
+    
+            $result = $stmt->get_result();
+            if ($result && $result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                $userId = $row['id'];
+            } else {
+                throw new Exception("No user found with the given email.");
+            }
+    
+            // Insert into password change requests
+            $query = "INSERT INTO password_change_requests (id, user_id, time) VALUES (?, ?, ?)";
+            $stmt = $conn->prepare($query);
+            if ($stmt === false) {
+                throw new Exception("Failed to prepare statement: " . $conn->error);
+            }
+            $stmt->bind_param("sss", $id, $userId, $timeNow);
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to execute statement: " . $stmt->error);
+            }
+    
+            // Send email
+            $mail = new PHPMailer(true);
+          
+            $appHost = $_ENV['APP_HOST'];
+            $appPort = $_ENV['APP_PORT'];
+            $senderEmailAddress = $_ENV['SENDER_EMAIL_ADDRESS'];
+            $senderEmailPassword = $_ENV['SENDER_EMAIL_PASSWORD'];
+            $resetPasswordLink = "http://" . $appHost . ":" . $appPort . "/reset-password/" . $id;
+    
+            // Server settings
+            $mail->isSMTP();
+            $mail->Host = "smtp.gmail.com";
+            $mail->SMTPAuth = true;
+            $mail->Username = $senderEmailAddress;
+            $mail->Password = $senderEmailPassword;
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port = 465;
+    
+            // Recipients
+            $mail->setFrom($senderEmailAddress, 'no-reply');
+            $mail->addAddress($email);
+    
+            // Content
+            $mail->isHTML(true);
+            $mail->Subject = 'Forgot Password';
+            $mail->Body = "
+                <!DOCTYPE html>
+                <html lang='en'>
+                <head>
+                    <meta charset='UTF-8'>
+                    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                    <title>Reset Your Password</title>
+                </head>
+                <body>
+                    <p>Hi,</p>
+                    <p>Please click the following link to reset your account password:</p>
+                    <p><a href=\"$resetPasswordLink\">Reset Password</a></p>
+                </body>
+                </html>
+            ";
+    
+            $mail->send();
+            $conn->commit();
+    
+            echo json_encode(['message' => 'Success'], JSON_PRETTY_PRINT);
+        } catch (Exception $e) {
+            $conn->rollback();
+            echo json_encode(['status' => 'error', 'message' => "Failed: " . $e->getMessage()], JSON_PRETTY_PRINT);
+        }
+    }    
+    public function ResetPassword(mysqli $conn, string $id)
+    {
+        header('Content-Type: application/json');
+    
+        $input = !empty($_POST) ? $_POST : json_decode(file_get_contents('php://input'), true);
+        $password = isset($input['password']) ? $input['password'] : null;
+    
+        if (empty($password)) {
+            echo json_encode(['status' => 'error', 'message' => 'Password must be filled'], JSON_PRETTY_PRINT);
+            return;
+        }
+    
+        $password_hash = password_hash($password, PASSWORD_DEFAULT);
+    
+        $conn->begin_transaction();
+    
+        try {
+            // Query to find the user by ID
+            $query = "SELECT user_id FROM password_change_requests WHERE id=?";
+            $stmt = $conn->prepare($query);
+            if ($stmt === false) {
+                throw new Exception("Failed to prepare statement: " . $conn->error);
+            }
+    
+            $stmt->bind_param("s", $id);
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to execute statement: " . $stmt->error);
+            }
+    
+            $result = $stmt->get_result();
+            if ($result && $result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                $userId = $row['user_id'];
+            } else {
+                throw new Exception("Invalid reset request ID.");
+            }
+    
+            // Update user's password
+            $query = "UPDATE users SET password=? WHERE id=?";
+            $stmt = $conn->prepare($query);
+            if ($stmt === false) {
+                throw new Exception("Failed to prepare update statement: " . $conn->error);
+            }
+    
+            $stmt->bind_param("ss", $password_hash, $userId);
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to execute update statement: " . $stmt->error);
+            }
+    
+            // Delete password change request
+            $query = "DELETE FROM password_change_requests WHERE id=?";
+            $stmt = $conn->prepare($query);
+            if ($stmt === false) {
+                throw new Exception("Failed to prepare delete statement: " . $conn->error);
+            }
+    
+            $stmt->bind_param("s", $id);
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to execute delete statement: " . $stmt->error);
+            }
+    
+            $conn->commit();
+            echo json_encode(['status' => 'success', 'message' => 'Password has been reset successfully'], JSON_PRETTY_PRINT);
+        } catch (Exception $e) {
+            $conn->rollback();
+            echo json_encode(['status' => 'error', 'message' => "Failed to reset password: " . $e->getMessage()], JSON_PRETTY_PRINT);
         }
     }
     

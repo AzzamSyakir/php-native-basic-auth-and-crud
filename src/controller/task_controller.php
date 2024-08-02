@@ -4,8 +4,7 @@ require_once __DIR__ . '/../model/tasks.php';
 
 class TaskController
 {
-    public function FetchTask(mysqli $conn,)
-    {
+    public function FetchTask(mysqli $conn)    {
         $task = [];
         try {
             $query = "SELECT * FROM tasks";

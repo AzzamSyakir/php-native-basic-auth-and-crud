@@ -7,6 +7,13 @@ CREATE TABLE IF NOT EXISTS users
     token VARCHAR(255) NOT NULL,
     confirmed BOOLEAN NOT NULL
 );
+CREATE TABLE IF NOT EXISTS password_change_requests
+(
+    id VARCHAR(255) NOT NULL PRIMARY KEY,
+    user_id CHAR(36) NOT NULL,
+    time TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
 CREATE TABLE IF NOT EXISTS sessions
 (
     id CHAR(36) NOT NULL PRIMARY KEY,
