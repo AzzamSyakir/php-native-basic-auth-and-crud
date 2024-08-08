@@ -21,4 +21,4 @@ jobs:
     - name: Build the Docker image
       run: docker build docker/dockerfile -t php-apache
     - name: push to DockerHub
-        run: docker push bukanasa/php-apache:latest
+      run: docker push bukanasa/php-apache:latest
