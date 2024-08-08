@@ -1,10 +1,16 @@
 FROM php:7.4-apache
 
-FROM php:7.4-apache
-
 # Install mysqli extension
 RUN docker-php-ext-install mysqli
 
+#setup workdir
+ENV WORKDIR /var/www/html
+WORKDIR $WORKDIR
+
+#copy source to container
+COPY src/ .
+COPY /apache/apache2.conf /etc/apache2/apache2.conf
+COPY /apache/sites-enabled/000-default.conf /etc/apache2/sites-enabled/000-default.conf
 
 # Update package list dan install sudo
 RUN apt-get update && \
