@@ -7,9 +7,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -17,8 +15,10 @@ jobs:
       env:
         DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
         DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
-      run: docker login -u $DOCKER_USERNAME -p $PASSWORD
+      run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+      
     - name: Build the Docker image
-      run: docker build docker/dockerfile -t php-apache
-    - name: push to DockerHub
+      run: docker build -f docker/dockerfile -t bukanasa/php-apache:latest .
+      
+    - name: Push to DockerHub
       run: docker push bukanasa/php-apache:latest
