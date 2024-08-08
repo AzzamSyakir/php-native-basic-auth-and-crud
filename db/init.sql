@@ -24,10 +24,3 @@ CREATE TABLE IF NOT EXISTS sessions
     refresh_token_expired_at TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
-
-CREATE TABLE IF NOT EXISTS tasks
-(
-    id CHAR(36) NOT NULL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL UNIQUE,
-    completed BOOLEAN NOT NULL
-);

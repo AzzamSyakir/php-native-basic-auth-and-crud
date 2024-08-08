@@ -23,8 +23,8 @@ services:
     env_file:
       - ../src/.env
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../
+      dockerfile: docker/Dockerfile
     environment:
       MYSQL_HOST: app-db
     ports:
