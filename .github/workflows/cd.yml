@@ -1,0 +1,22 @@
+name: CD Pipeline
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+    - name: Pull Docker Image
+      run: docker pull bukanasa/php-apache:latest
+
+    - name: Delete old docker image and down docker compose
+      run: |
+        docker compose down --remove-orphans || true
+        docker rm -f php-apache || true
+
+    - name: Run Docker Compose
+      run: docker compose up -d
