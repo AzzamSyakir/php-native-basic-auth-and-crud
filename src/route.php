@@ -55,7 +55,6 @@ function Route() {
         parse_str($query, $query_params);
         if (isset($query_params['token'])) {
             $token = $query_params['token'];
-            require 'controller/task_controller.php';
             $controller = new UserController();
             $controller->ConfirmEmail($conn, $token);
         } else {
@@ -66,7 +65,6 @@ function Route() {
     case preg_match('/^\/confirm\/([a-zA-Z0-9]+)$/', $path, $matches):
         require 'controller/user_controller.php';
         $token = $matches[1];
-        require 'controller/task_controller.php';
         $controller = new UserController();
         $controller->ConfirmEmail($conn, $token);
         break;
@@ -91,7 +89,6 @@ function Route() {
         parse_str($query, $query_params);
         if (isset($query_params['id'])) {
             $id = $query_params['id'];
-            require 'controller/task_controller.php';
             $controller = new UserController();
             $controller->ResetPassword($conn, $id);
         } else {
@@ -102,23 +99,9 @@ function Route() {
     case preg_match('/^\/reset-password\/([a-zA-Z0-9]+)$/', $path, $matches):
         require 'controller/user_controller.php';
         $id = $matches[1];
-        require 'controller/task_controller.php';
         $controller = new UserController();
         $controller->ResetPassword($conn, $id);
         break;
-    
-
-
-    case $uri === '/api/tasks':
-        require 'controller/task_controller.php';
-        $controller = new TaskController();
-        if ($method == 'GET') {
-            $controller->FetchTask($conn);
-        } elseif ($method == 'POST') {
-            $controller->CreateTask($conn);
-        }
-        break;
-     
     
       default:
           header("HTTP/1.0 404 Not Found");
