@@ -10,8 +10,6 @@ WORKDIR $WORKDIR
 #copy source to container
 COPY src/ .
 RUN true
-COPY src/.env .
-RUN true
 COPY apache/apache2.conf /etc/apache2/apache2.conf
 RUN true
 COPY apache/sites-enabled/000-default.conf /etc/apache2/sites-enabled/000-default.conf

@@ -10,13 +10,31 @@ jobs:
   build:
     runs-on: self-hosted
     steps:
-    - name: Pull Docker Image
-      run: docker pull bukanasa/php-apache:latest
+      - name: Create .env file
+        run: |
+          echo "APP_HOST=${{ secrets.APP_HOST }}" > .env
+          echo "APP_PORT=${{ secrets.APP_PORT }}" >> .env
+          echo "SENDER_EMAIL_ADDRESS=${{ secrets.SENDER_EMAIL_ADDRESS }}" >> .env
+          echo "SENDER_EMAIL_PASSWORD=${{ secrets.SENDER_EMAIL_PASSWORD }}" >> .env
+          echo "MYSQL_HOST=${{ secrets.MYSQL_HOST }}" >> .env
+          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+          echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+          echo "MYSQL_PORT=${{ secrets.MYSQL_PORT }}" >> .env
+          echo "MYSQL_DB=${{ secrets.MYSQL_DB }}" >> .env
 
-    - name: Delete old docker image and down docker compose
-      run: |
-        docker compose down --remove-orphans || true
-        docker rm -f php-apache || true
+      - name: Login to DockerHub
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
 
-    - name: Run Docker Compose
-      run: docker compose up -d
+      - name: Pull Docker Image
+        run: docker pull bukanasa/php-apache:latest
+
+      - name: Delete old Docker container and down Docker Compose
+        run: |
+          docker compose down --remove-orphans || true
+          docker rm -f php-apache || true
+
+      - name: Run Docker Compose
+        run: docker compose up -d
