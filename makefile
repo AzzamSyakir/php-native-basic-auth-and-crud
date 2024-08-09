@@ -1,4 +1,3 @@
-# docker command
 start-docker:
 	docker compose --env-file src/.env -f ./docker/docker-compose.yml up -d
 
