@@ -258,13 +258,11 @@ public function Login(mysqli $conn) {
 
         setcookie("access_token_cookie", $accessToken, [
             'expires' => $accessTokenExpiry->getTimestamp(),
-            'secure' => true,
             'httponly' => true,
             'samesite' => 'Strict'
         ]);
         setcookie("refresh_token_cookie", $refreshToken, [
             'expires' => $refreshTokenExpiry->getTimestamp(),
-            'secure' => true,
             'httponly' => true,
             'samesite' => 'Strict'
         ]);
