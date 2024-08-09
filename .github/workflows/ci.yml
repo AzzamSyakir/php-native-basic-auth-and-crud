@@ -7,20 +7,33 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Login to DockerHub
-      env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+      - name: Create .env file
+        run: |
+          echo "APP_HOST=${{ secrets.APP_HOST }}" > .env
+          echo "APP_PORT=${{ secrets.APP_PORT }}" >> .env
+          echo "SENDER_EMAIL_ADDRESS=${{ secrets.SENDER_EMAIL_ADDRESS }}" >> .env
+          echo "SENDER_EMAIL_PASSWORD=${{ secrets.SENDER_EMAIL_PASSWORD }}" >> .env
+          echo "MYSQL_HOST=${{ secrets.MYSQL_HOST }}" >> .env
+          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+          echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+          echo "MYSQL_PORT=${{ secrets.MYSQL_PORT }}" >> .env
+          echo "MYSQL_DB=${{ secrets.MYSQL_DB }}" >> .env
 
-    - name: Build the Docker image
-      run: |
-        docker builder prune --all --force
-        docker build --no-cache -f docker/dockerfile -t bukanasa/php-apache:latest .
+      - name: Login to DockerHub
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
 
-    - name: Push Docker image to DockerHub
-      run: docker push bukanasa/php-apache:latest
+      - name: Build the Docker image
+        run: |
+          docker builder prune --all --force
+          docker build --no-cache -f docker/dockerfile -t bukanasa/php-apache:latest .
+
+      - name: Push Docker image to DockerHub
+        run: docker push bukanasa/php-apache:latest
