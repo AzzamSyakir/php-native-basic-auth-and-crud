@@ -16,7 +16,6 @@ jobs:
       run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
       
     - name: Build the Docker image
-      run: docker build -f docker/dockerfile -t bukanasa/php-apache:latest .
-      
+      run: docker build --no-cache -f docker/dockerfile -t bukanasa/php-apache:latest .
     - name: Push to DockerHub
       run: docker push bukanasa/php-apache:latest
