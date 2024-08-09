@@ -28,6 +28,9 @@ function Route() {
             $controller->hello();
         }
         break;
+    case $uri === '/home':
+        require 'controller/home_controller.php';
+        break;
     case $uri === '/logout':
         require 'middleware.php';
         require 'controller/user_controller.php';
