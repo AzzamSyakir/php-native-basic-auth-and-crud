@@ -2,8 +2,6 @@ services:
   app-db:
     image: mysql:latest
     container_name: app-db
-    env_file:
-      - ../src/.env
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
@@ -20,11 +18,9 @@ services:
 
   apache:
     container_name: apache
-    env_file:
-      - ../src/.env
     build:
       context: ../
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/dockerfile
     environment:
       MYSQL_HOST: app-db
     ports:
