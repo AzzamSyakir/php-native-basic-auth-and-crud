@@ -9,18 +9,21 @@ on:
 jobs:
   build:
     runs-on: self-hosted
+
     steps:
       - name: Create .env file
         run: |
-          echo "APP_HOST=${{ secrets.APP_HOST }}" > src/.env
-          echo "APP_PORT=${{ secrets.APP_PORT }}" >> src/.env
-          echo "SENDER_EMAIL_ADDRESS=${{ secrets.SENDER_EMAIL_ADDRESS }}" >> src/.env
-          echo "SENDER_EMAIL_PASSWORD=${{ secrets.SENDER_EMAIL_PASSWORD }}" >> src/.env
-          echo "MYSQL_HOST=${{ secrets.MYSQL_HOST }}" >> src/.env
-          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> src/.env
-          echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> src/.env
-          echo "MYSQL_PORT=${{ secrets.MYSQL_PORT }}" >> src/.env
-          echo "MYSQL_DB=${{ secrets.MYSQL_DB }}" >> src/.env
+          cat <<EOF > src/.env
+          APP_HOST=${{ secrets.APP_HOST }}
+          APP_PORT=${{ secrets.APP_PORT }}
+          SENDER_EMAIL_ADDRESS=${{ secrets.SENDER_EMAIL_ADDRESS }}
+          SENDER_EMAIL_PASSWORD=${{ secrets.SENDER_EMAIL_PASSWORD }}
+          MYSQL_HOST=${{ secrets.MYSQL_HOST }}
+          MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_USER=${{ secrets.MYSQL_USER }}
+          MYSQL_PORT=${{ secrets.MYSQL_PORT }}
+          MYSQL_DB=${{ secrets.MYSQL_DB }}
+          EOF
 
       - name: Login to DockerHub
         env:
@@ -31,10 +34,10 @@ jobs:
       - name: Pull Docker Image
         run: docker pull bukanasa/php-apache:latest
 
-      - name: Delete old Docker container and down Docker Compose
+      - name: Stop and remove old Docker containers
         run: |
           docker compose down --remove-orphans || true
           docker rm -f php-apache || true
 
       - name: Run Docker Compose
-        run: docker compose up -d
+        run: docker compose up -d --build
