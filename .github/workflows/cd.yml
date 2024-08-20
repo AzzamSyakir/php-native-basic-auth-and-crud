@@ -12,15 +12,15 @@ jobs:
     steps:
       - name: Create .env file
         run: |
-          echo "APP_HOST=${{ secrets.APP_HOST }}" > .env
-          echo "APP_PORT=${{ secrets.APP_PORT }}" >> .env
-          echo "SENDER_EMAIL_ADDRESS=${{ secrets.SENDER_EMAIL_ADDRESS }}" >> .env
-          echo "SENDER_EMAIL_PASSWORD=${{ secrets.SENDER_EMAIL_PASSWORD }}" >> .env
-          echo "MYSQL_HOST=${{ secrets.MYSQL_HOST }}" >> .env
-          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
-          echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
-          echo "MYSQL_PORT=${{ secrets.MYSQL_PORT }}" >> .env
-          echo "MYSQL_DB=${{ secrets.MYSQL_DB }}" >> .env
+          echo "APP_HOST=${{ secrets.APP_HOST }}" > src/.env
+          echo "APP_PORT=${{ secrets.APP_PORT }}" >> src/.env
+          echo "SENDER_EMAIL_ADDRESS=${{ secrets.SENDER_EMAIL_ADDRESS }}" >> src/.env
+          echo "SENDER_EMAIL_PASSWORD=${{ secrets.SENDER_EMAIL_PASSWORD }}" >> src/.env
+          echo "MYSQL_HOST=${{ secrets.MYSQL_HOST }}" >> src/.env
+          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> src/.env
+          echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> src/.env
+          echo "MYSQL_PORT=${{ secrets.MYSQL_PORT }}" >> src/.env
+          echo "MYSQL_DB=${{ secrets.MYSQL_DB }}" >> src/.env
 
       - name: Login to DockerHub
         env:
