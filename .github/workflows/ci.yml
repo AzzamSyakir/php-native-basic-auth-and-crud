@@ -12,6 +12,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Create .env file
+<<<<<<< HEAD
         run: |
           echo "APP_HOST=${{ secrets.APP_HOST }}" > src/.env
           echo "APP_PORT=${{ secrets.APP_PORT }}" >> src/.env
@@ -22,6 +23,18 @@ jobs:
           echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> src/.env
           echo "MYSQL_PORT=${{ secrets.MYSQL_PORT }}" >> src/.env
           echo "MYSQL_DB=${{ secrets.MYSQL_DB }}" >> src/.env
+=======
+              run: |
+                echo "APP_HOST=${{ secrets.APP_HOST }}" > src/.env
+                echo "APP_PORT=${{ secrets.APP_PORT }}" >> src/.env
+                echo "SENDER_EMAIL_ADDRESS=${{ secrets.SENDER_EMAIL_ADDRESS }}" >> src/.env
+                echo "SENDER_EMAIL_PASSWORD=${{ secrets.SENDER_EMAIL_PASSWORD }}" >> src/.env
+                echo "MYSQL_HOST=${{ secrets.MYSQL_HOST }}" >> src/.env
+                echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> src/.env
+                echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> src/.env
+                echo "MYSQL_PORT=${{ secrets.MYSQL_PORT }}" >> src/.env
+                echo "MYSQL_DB=${{ secrets.MYSQL_DB }}" >> src/.env
+>>>>>>> 401ab5c34afd49d204d49bd3928b29d612d9fee0
       - name: Login to DockerHub
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
