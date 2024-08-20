@@ -13,7 +13,7 @@ COPY /apache/apache2.conf /etc/apache2/apache2.conf
 COPY /apache/sites-enabled/000-default.conf /etc/apache2/sites-enabled/000-default.conf
 
 # Copy .env file to container
-COPY .env .env
+COPY src/.env .env
 
 # Update package list dan install sudo
 RUN apt-get update && \
