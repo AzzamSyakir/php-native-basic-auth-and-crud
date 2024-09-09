@@ -24,25 +24,32 @@ This project is a basic PHP application that provides CRUD (Create, Read, Update
    ```
 
 2. **Configure the Database:**
-   - Create a MySQL database and import the provided SQL file (`database.sql`).
-   - Update the database connection settings in the configuration file (`config.php`).
+   - Create a MySQL database with the name provided in your `.env` file (`MYSQL_DB`).
+   - Import the provided SQL file (`database.sql`) into your MySQL database.
+   - Ensure your MySQL credentials (`MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_HOST`, `MYSQL_PORT`) are correctly set in the `.env` file.
 
 3. **Set Up Email Configuration:**
-   - Configure SMTP settings in the email configuration file (`email_config.php`).
-   - Make sure to update with your SMTP credentials and adjust settings for your email provider.
+   - Copy the `.env.example` file to `.env` if it's not already done:
+     ```bash
+     cp .env.example .env
+     ```
+   - Update the email configuration in the `.env` file:
+     - `SENDER_EMAIL_ADDRESS`: Your sender email address.
+     - `SENDER_EMAIL_PASSWORD`: Your email password or app-specific password if using services like Gmail.
 
 4. **Run the Application:**
-   - Deploy the project on a local server like XAMPP, MAMP, or a live server.
-   - Access the application via your web browser.
+   - Deploy the project on a local server like XAMPP, MAMP, or any server that supports PHP.
+   - Ensure the server is running on the host and port specified in the `.env` (`APP_HOST` and `APP_PORT`).
+   - Access the application via your web browser at `http://APP_HOST:APP_PORT`.
 
 5. **Testing the Application:**
-   - Register a new user and check for the confirmation email.
-   - Use the confirmation link in the email to verify the account.
+   - Register a new user through the application.
+   - Check the inbox of the registered email for the confirmation email.
+   - Use the link in the confirmation email to verify the user's account.
 
-## Troubleshooting
-
-- If emails are not being sent, check your SMTP configuration and make sure your server allows outgoing emails.
-- Verify that all required PHP extensions (like `mysqli` and `openssl`) are enabled on your server.
+6. **Troubleshooting:**
+   - If emails are not being sent, verify that your email settings (`SENDER_EMAIL_ADDRESS`, `SENDER_EMAIL_PASSWORD`) are correct, and that your email provider supports SMTP access for the credentials provided.
+   - Ensure your PHP installation includes the necessary extensions for database connections, like `mysqli`.
 
 ## License
 
